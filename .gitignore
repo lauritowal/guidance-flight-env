@@ -4,3 +4,4 @@ examples/rllib/checkpoints/*
 examples/rllib/htmls/*
 examples/rllib/images/*
 tests/images/*
+.idea
