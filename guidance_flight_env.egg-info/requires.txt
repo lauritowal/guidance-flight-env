@@ -1,0 +1,8 @@
+numpy
+gym
+matplotlib
+pandas
+plotly==4.14.3
+celluloid
+ray[rllib]==1.2.0
+jsbsim
