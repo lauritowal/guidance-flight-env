@@ -16,7 +16,8 @@ setup(name='guidance_flight_env',
             'celluloid',
             'ray[rllib]==1.2.0',
             'jsbsim',
-            'torch'
+            'torch',
+            'aioredis<2.0.0'
       ],
       packages=find_packages(),
       classifiers=[

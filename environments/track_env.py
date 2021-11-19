@@ -6,14 +6,16 @@ import properties as prp
 from dataclasses import dataclass
 
 from environments.main_env import MainEnv
+from utils.object_3d import Object3D
+
 
 @dataclass
 class TrackEnvWind(MainEnv):
     action_space = gym.spaces.Box(-1, 1, (2,), dtype=np.float32)
     observation_space: gym.Space = gym.spaces.Box(-np.inf, np.inf, shape=(19,), dtype=np.float32)
     runway_angle_threshold_deg = 10
+    last_track_error = 0
     last_track_error_perpendicular = 0
-
 
     def setup_episode(self):
         # Increasing difficulty for incrementing phase
@@ -33,6 +35,10 @@ class TrackEnvWind(MainEnv):
             self.spawn_target_distance_km = self.max_target_distance_km
             self.sim[prp.wind_east_fps] = self.np_random.uniform(-55, 55)
 
+        self.last_track_error = 0
+        self.last_track_error_perpendicular = 0
+        self.localizer_position = self._create_localizer()
+        self.localizer_perpendicular_position = self._create_perpendicular_localizer()
         self.sim.raise_landing_gear()
         self.sim.stop_engines()
 
@@ -53,7 +59,7 @@ class TrackEnvWind(MainEnv):
         if is_in_area:
             cross_track_error = self._calc_cross_track_error(aircraft_position, self.target_position)
         else:
-            cross_track_error = self._calc_cross_track_error(aircraft_position, self.perpendicular_point)
+            cross_track_error = self._calc_cross_track_error(aircraft_position, self.localizer_perpendicular_position)
         vertical_track_error = self._calc_vertical_track_error(aircraft_position, self.target_position)
         track_error = abs(cross_track_error) + abs(vertical_track_error)
 
@@ -99,6 +105,28 @@ class TrackEnvWind(MainEnv):
             "is_aircraft_altitude_to_low": is_aircraft_altitude_to_low
         }
 
+    def _create_localizer(self):
+        distance_km = -1
+        heading = self.runway_angle_deg
+        # rotate from  N(90°);E(0°) to N(0°);E(90°)
+        x = self.target_position.x + distance_km * math.cos(math.radians((heading - 90) % 360))
+        y = self.target_position.y + distance_km * math.sin(math.radians((heading + 90) % 360))
+        z = self.target_position.z
+
+        localizer = Object3D(x, y, z, heading=self.runway_angle_deg)
+        return localizer
+
+    def _create_perpendicular_localizer(self):
+        heading = self.runway_angle_deg + 90
+
+        distance_km = -1
+        # rotate from  N(90°);E(0°) to N(0°);E(90°)
+        x = self.localizer_position.x + distance_km * math.cos(math.radians((heading - 90) % 360))
+        y = self.localizer_position.y + distance_km * math.sin(math.radians((heading + 90) % 360))
+
+        localizer = Object3D(x, y, heading=heading)
+        return localizer
+
     def _calc_vertical_track_error(self, current_position, target_position):
         diff = current_position - target_position
         return - diff.y * math.sin(math.radians(-self.glide_angle_deg % 360)) + diff.z * math.cos(math.radians(-self.glide_angle_deg % 360))
@@ -125,7 +153,7 @@ class TrackEnvWind(MainEnv):
         if in_area:
             cross_track_error = self._calc_cross_track_error(aircraft_position, self.target_position)
         else:
-            cross_track_error = self._calc_cross_track_error(aircraft_position, self.perpendicular_point)
+            cross_track_error = self._calc_cross_track_error(aircraft_position, self.localizer_perpendicular_position)
         vertical_track_error = self._calc_vertical_track_error(aircraft_position, self.target_position)
 
         distance_to_target_km = aircraft_position.distance_to_target(self.target_position) / self.max_distance_km
@@ -206,7 +234,7 @@ class TrackEnvWind(MainEnv):
             self.last_runway_heading_error_deg.append(runway_heading_error_deg)
             self.last_track_error = track_error
         else:
-            cross_track_error = self._calc_cross_track_error(aircraft_position, self.perpendicular_point)
+            cross_track_error = self._calc_cross_track_error(aircraft_position, self.localizer_perpendicular_position)
             self.last_track_error_perpendicular = cross_track_error
             track_error = cross_track_error
             penalty_area_2 = -2
@@ -302,7 +330,7 @@ class TrackEnvNoWind(TrackEnvWind):
         if in_area:
             cross_track_error = self._calc_cross_track_error(aircraft_position, self.target_position)
         else:
-            cross_track_error = self._calc_cross_track_error(aircraft_position, self.perpendicular_point)
+            cross_track_error = self._calc_cross_track_error(aircraft_position, self.localizer_perpendicular_position)
         vertical_track_error = self._calc_vertical_track_error(aircraft_position, self.target_position)
 
         distance_to_target_km = aircraft_position.distance_to_target(self.target_position) / self.max_distance_km

@@ -55,7 +55,7 @@ if __name__ == "__main__":
             "jsbsim_path": "/home/walt/jsbsim",
             "aircraft": cessna172P,
             "agent_interaction_freq": 5,
-            "target_radius": 100 / 1000,
+            "target_radius_km": 100 / 1000,
             "max_target_distance_km": 2,
             "max_episode_time_s": 60 * 5,
             "phase": 0,

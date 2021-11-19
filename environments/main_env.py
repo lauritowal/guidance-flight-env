@@ -19,16 +19,16 @@ from abc import ABC, abstractmethod
 
 @dataclass
 class MainEnv(gym.Env, ABC):
-    infos: List[dict]
-    last_distance_km: List[float]
-    pid_controller: PidController
-
+    infos = []
+    last_distance_km = []
+    pid_controller = PidController()
     metadata = {"render.modes": ["rgb-array"]}
     jsbsim_path: str
     episode_counter: int = 0
+    max_distance_km: float = math.inf
     aircraft: Aircraft = cessna172P
     agent_interaction_freq: int = 5
-    target_radius: float = 100 / 1000
+    target_radius_km: float = 100 / 1000
     max_target_distance_km: int = 2
     max_episode_time_s: int = 60 * 5
     phase: int = 0
@@ -54,9 +54,6 @@ class MainEnv(gym.Env, ABC):
     def __post_init__(self):
         self.infos = []
         self.pid_controller = PidController()
-        self.max_distance_km = self.sim.calculate_max_distance_km(self.max_episode_time_s)
-        self.steps_left = self.episode_steps
-        self.last_track_error = 0
         self.last_distance_km = []
         self.last_runway_heading_error_deg = []
 
@@ -71,6 +68,7 @@ class MainEnv(gym.Env, ABC):
         self.sim_steps_per_agent_step: int = self.jsbsim_dt_hz // self.agent_interaction_freq
         self.sim_steps = self.sim_steps_per_agent_step
         self.episode_steps = math.ceil(self.max_episode_time_s * self.agent_interaction_freq)
+        self.steps_left = self.episode_steps
 
 
     @abstractmethod
@@ -95,7 +93,7 @@ class MainEnv(gym.Env, ABC):
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
-        self.action_space.seed_value(seed)
+        self.action_space.seed(seed)
         return [seed]
 
     def reset(self):
