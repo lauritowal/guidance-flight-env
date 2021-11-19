@@ -2,85 +2,20 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
-from PIL import Image, ImageDraw
 from matplotlib import pyplot as plt
-from celluloid import Camera
-import imageio
-import io
-import base64
-from IPython.display import HTML
 from matplotlib import gridspec
 
 
 class Plotter:
-    def __init__(self, target, glide_angle_deg, bounds_radius_km, localizer_perpendicular_position, target_spawn_area_radius_km,
+    def __init__(self, target, glide_angle_deg, bounds_radius_km, target_spawn_area_radius_km,
                  target_radius_km, aircraft_initial_position, runway_angle=90):
         self.target_position = target
-        self.localizer_perpendicular_position = localizer_perpendicular_position
         self.bounds_radius_km = bounds_radius_km
         self.target_spawn_area_radius_km = target_spawn_area_radius_km
         self.target_radius_km = target_radius_km
         self.runway_angle_deg = runway_angle
         self.aircraft_initial_position = aircraft_initial_position
         self.glide_angle_deg = glide_angle_deg
-
-
-    def convert2gif(self, images, file_name, interval: int = 50):
-        imageio.mimsave(f'{file_name}.gif', [np.array(img) for i, img in enumerate(images) if i % 2 == 0], fps=interval)
-
-    @classmethod
-    def convert2video(self, images: np.array, file_name: str, interval: int = 50):
-        fig = plt.figure()
-        camera = Camera(fig)
-        episode_count = 0
-        for image in images:
-            plt.imshow(image)
-            plt.figtext(0.5, 0.01, f"episode {episode_count}", ha="center", fontsize=18,
-                        bbox={"facecolor": "orange", "alpha": 0.5, "pad": 5})
-            camera.snap()
-            episode_count += 1
-
-        animation = camera.animate(interval=interval)
-        file = f'{file_name}.mp4'
-        animation.save(file)
-        print("save to file", file)
-
-        return animation
-
-    @classmethod
-    def save_images(self, images: np.array, infos, path: str = "./images"):
-        episode_count = 0
-        for image_array in images:
-            rescaled = (255.0 / image_array.max() * (image_array - image_array.min())).astype(np.uint8)
-
-            image = Image.fromarray(rescaled)
-            ImageDraw.Draw(image).text((0, 0), f'episode: {episode_count}', (0, 0, 0))
-
-            info = infos[episode_count]
-            if info["is_aircraft_out_of_bounds"]:
-                type = f'bounds'
-            elif info["is_aircraft_at_target"]:
-                if info["is_heading_correct"]:
-                    type = f'heading'
-                else:
-                    type = f'target'
-            elif info["is_on_track"]:
-                type = f'track'
-            else:
-                type = f'other'
-
-            image.save(f"{path}/episode_{episode_count}_{type}.png")
-
-            episode_count += 1
-
-
-    @classmethod
-    def play_video(self, filename):
-        video = io.open(filename, 'r+b').read()
-        encoded = base64.b64encode(video)
-        return HTML(data='''<video alt="test" controls>
-                        <source src="data:video/mp4;base64,{0}" type="video/mp4"/>
-                     </video>'''.format(encoded.decode('ascii')))
 
     def render_rgb_array(self, infos) -> np.array:
         xs = []
@@ -108,8 +43,8 @@ class Plotter:
         drifts = []
         in_area_colors = []
         for info in infos:
-            xs.append(info["aircraft_long_deg"])
-            ys.append(info["aircraft_lat_deg"])
+            xs.append(info["aircraft_y"])
+            ys.append(info["aircraft_x"])
             track_angles.append(info["aircraft_track_angle_deg"])
             drifts.append(info["drift_deg"])
             aircraft_true_headings.append(info["aircraft_heading_true_deg"])
@@ -145,8 +80,8 @@ class Plotter:
         canvas = FigureCanvas(figure)
 
         ax1 = plt.subplot(gs[0])
-        ax1.set_xlabel('long')
-        ax1.set_ylabel('lat')
+        ax1.set_xlabel('x')
+        ax1.set_ylabel('y')
 
         ax2 = plt.subplot(gs[2])
         ax2.set_xlabel('reward')
@@ -186,12 +121,6 @@ class Plotter:
                             self.target_radius_km, fill=False, color='green')
 
 
-        localizer_perpendicular = plt.Circle((self.localizer_perpendicular_position.x, self.localizer_perpendicular_position.y), radius=0.1, fill=True, color="orange")
-
-
-        line = plt.Line2D(xdata=[self.localizer_perpendicular_position.x, self.target_position.x],
-                          ydata=[self.localizer_perpendicular_position.y, self.target_position.y], color="orange")
-
         target_spawn_area = plt.Circle((self.aircraft_initial_position.x, self.aircraft_initial_position.y),
                                        self.target_spawn_area_radius_km, fill=False, color='grey')
 
@@ -206,9 +135,7 @@ class Plotter:
 
         ax1.set_aspect(1)
         ax1.add_artist(bounds)
-        ax1.add_artist(localizer_perpendicular)
         ax1.add_artist(target)
-        ax1.add_artist(line)
         ax1.add_artist(target_spawn_area)
 
         ax4.add_artist(text)
@@ -264,8 +191,8 @@ class Plotter:
         in_area = []
         in_area_colors = []
         for info in infos:
-            xs.append(info["aircraft_long_deg"])
-            ys.append(info["aircraft_lat_deg"])
+            xs.append(info["aircraft_y"])
+            ys.append(info["aircraft_x"])
             track_angles.append(info["aircraft_track_angle_deg"])
             aircraft_true_headings.append(info["aircraft_heading_true_deg"])
             rewards.append(info["reward"])
@@ -313,25 +240,6 @@ class Plotter:
                 )
             ),
             row=1, col=[1,2]
-        )
-
-        zs = [self.target_position.z, self.localizer_perpendicular_position.z]
-        fig.add_trace(
-            go.Scatter3d(
-                x=[self.target_position.x, self.localizer_perpendicular_position.x],
-                y=[self.target_position.y, self.localizer_perpendicular_position.y],
-                z=zs,
-                marker=dict(
-                    color=zs,  # set color to an array/list of desired values
-                    colorscale='Viridis',  # choose a colorscale
-                    opacity=1
-                ),
-                line=dict(
-                    color='green',
-                    width=2
-                )
-            ),
-            row=1, col=1
         )
 
         fig.write_html(path)

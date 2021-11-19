@@ -9,8 +9,10 @@ IMAGE_PATH = os.path.join(dirname, 'images')
 
 episode_counter = 0
 episode_counter_file = 0
+
+
 class CustomCallbacks(DefaultCallbacks):
-    def on_train_result(self, *, trainer, result: dict, **kwargs):
+    def on_train_result(self, *, trainer, result: dict):
         if result["episode_reward_mean"] > -300:
             phase = 4
         elif result["episode_reward_mean"] > -600:
@@ -23,7 +25,6 @@ class CustomCallbacks(DefaultCallbacks):
             phase = 0
 
         print(f"set phase to: {phase}")
-
         trainer.workers.foreach_worker(lambda ev: ev.foreach_env(lambda env: env.set_phase(phase)))
 
 

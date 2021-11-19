@@ -3,15 +3,20 @@ import gym
 import numpy as np
 from utils import utils
 import properties as prp
+from dataclasses import dataclass
 
 from environments.main_env import MainEnv
-from utils.element_3d import Element3d
 
+@dataclass
 class TrackEnvWind(MainEnv):
     action_space = gym.spaces.Box(-1, 1, (2,), dtype=np.float32)
     observation_space: gym.Space = gym.spaces.Box(-np.inf, np.inf, shape=(19,), dtype=np.float32)
+    runway_angle_threshold_deg = 10
+    last_track_error_perpendicular = 0
+
 
     def setup_episode(self):
+        # Increasing difficulty for incrementing phase
         if self.phase == 0:
             self.spawn_target_distance_km = 0.5
             self.sim[prp.wind_east_fps] = 0
@@ -31,54 +36,33 @@ class TrackEnvWind(MainEnv):
         self.sim.raise_landing_gear()
         self.sim.stop_engines()
 
-    def _create_point_perpendicular_to_runway(self):
-        heading = self.runway_angle_deg + 90
-        distance_km = 1
-        # rotate from  N(90°);E(0°) to N(0°);E(90°)
-        x = self.target_position.x - distance_km * math.cos(math.radians((heading - 90) % 360))
-        y = self.target_position.y
-
-        return Element3d(x, y, heading=heading)
-
     def get_info(self, reward):
-
         aircraft_position = self._aircraft_position()
 
+        runway_angle_error_deg = utils.normalize_angle_deg(self.sim.get_heading_true_deg() - self.runway_angle_deg)
+
+        is_aircraft_out_of_bounds = self.sim.is_aircraft_out_of_bounds(max_distance_km=self.max_distance_km)
+        is_heading_correct = abs(runway_angle_error_deg) < self.runway_angle_threshold_deg
+        is_aircraft_altitude_to_low = self.sim.is_aircraft_altitude_to_low(self.crash_height_ft)
+        is_in_area = self._is_in_area()
         is_aircraft_at_target = self.sim.is_aircraft_at_target(self.target_position,
                                                                aircraft_position=aircraft_position,
                                                                target_position=self.target_position,
                                                                threshold=self.min_distance_to_target_km)
 
-        is_aircraft_out_of_bounds = self.sim.is_aircraft_out_of_bounds(max_distance_km=self.max_distance_km)
-
-        runway_angle_error_deg = utils.normalize_angle_deg(self.sim.get_heading_true_deg() - self.runway_angle_deg)
-        is_heading_correct = abs(runway_angle_error_deg) < self.runway_angle_threshold_deg
-
-        terminal_state = "other"
-        if is_aircraft_at_target:
-            terminal_state = "target"
-            if is_heading_correct:
-                terminal_state = "heading"
-        if is_aircraft_out_of_bounds:
-            terminal_state = "bounds"
-
-        is_aircraft_altitude_to_low = self.sim.is_aircraft_altitude_to_low(self.crash_height_ft)
-
-        in_area = self._in_area()
-        vertical_track_error = self._calc_vertical_track_error(aircraft_position, self.target_position)
-        if in_area:
+        if is_in_area:
             cross_track_error = self._calc_cross_track_error(aircraft_position, self.target_position)
         else:
             cross_track_error = self._calc_cross_track_error(aircraft_position, self.perpendicular_point)
-
+        vertical_track_error = self._calc_vertical_track_error(aircraft_position, self.target_position)
         track_error = abs(cross_track_error) + abs(vertical_track_error)
 
         diff = self.target_position - aircraft_position
         return {
             "altitude_error": diff.z,
             "aircraft_heading_true_deg": self.sim.get_heading_true_deg(),
-            "aircraft_lat_deg": aircraft_position.y,
-            "aircraft_long_deg": aircraft_position.x,
+            "aircraft_x": aircraft_position.y,
+            "aircraft_y": aircraft_position.x,
             "aircraft_track_angle_deg": self.sim.get_track_angle_deg(),
             "aircraft_v_down_fps": self.sim[prp.v_down_fps],
             "aircraft_v_north_fps": self.sim[prp.v_north_fps],
@@ -99,14 +83,13 @@ class TrackEnvWind(MainEnv):
             "simulation_time_step": self.sim.get_sim_time(),
             "reward": reward,
             "is_heading_correct": is_heading_correct,
-            "terminal_state": terminal_state,
             "is_aircraft_at_target": is_aircraft_at_target,
             "is_aircraft_out_of_bounds": is_aircraft_out_of_bounds,
             "distance_to_target": aircraft_position.distance_to_target(self.target_position),
             "runway_angle": self.runway_angle_deg,
             "runway_angle_error": runway_angle_error_deg,
             "runway_angle_threshold_deg": self.runway_angle_threshold_deg,
-            "in_area": in_area,
+            "in_area": is_in_area,
             "is_on_track": self._is_on_track(),
             "pitch_rad": self.sim[prp.pitch_rad],
             "gamma_deg": math.degrees(self.sim[prp.pitch_rad] - self.sim[prp.alpha_rad]),
@@ -116,14 +99,11 @@ class TrackEnvWind(MainEnv):
             "is_aircraft_altitude_to_low": is_aircraft_altitude_to_low
         }
 
-
-    # Check if vertical error is correct...
     def _calc_vertical_track_error(self, current_position, target_position):
         diff = current_position - target_position
         return - diff.y * math.sin(math.radians(-self.glide_angle_deg % 360)) + diff.z * math.cos(math.radians(-self.glide_angle_deg % 360))
 
     def _calc_cross_track_error(self, current_position, target_position):
-        # TODO: Turn around as in other places or turn around others...?
         diff = current_position - target_position
         heading = target_position.heading
         return - diff.x * math.sin(math.radians(heading + 90)) + diff.y * math.cos(math.radians(heading - 90))
@@ -141,7 +121,7 @@ class TrackEnvWind(MainEnv):
         turn_rate = self.sim.get_turn_rate()
         altitude_rate_fps = self.sim[prp.altitude_rate_fps]
 
-        in_area = self._in_area()
+        in_area = self._is_in_area()
         if in_area:
             cross_track_error = self._calc_cross_track_error(aircraft_position, self.target_position)
         else:
@@ -149,7 +129,7 @@ class TrackEnvWind(MainEnv):
         vertical_track_error = self._calc_vertical_track_error(aircraft_position, self.target_position)
 
         distance_to_target_km = aircraft_position.distance_to_target(self.target_position) / self.max_distance_km
-        rest_height_ft = (diff.z * 3281) / self.max_height_ft
+        rest_height_ft = (diff.z * 3281) / self.max_starting_height_ft
 
         drift_deg = self._get_drift_deg()
 
@@ -162,7 +142,7 @@ class TrackEnvWind(MainEnv):
             math.sin(math.radians(drift_deg)),
             math.cos(math.radians(drift_deg)),
             abs(rest_height_ft),
-            altitude_rate_fps / self.max_height_ft,
+            altitude_rate_fps / self.max_starting_height_ft,
             distance_to_target_km,
             true_airspeed / 1000,
             turn_rate,
@@ -176,10 +156,10 @@ class TrackEnvWind(MainEnv):
         ], dtype=np.float32)
 
     def _reward(self):
-        in_area = self._in_area()
+        in_area = self._is_in_area()
         aircraft_position = self._aircraft_position()
 
-        if self.sim.is_aircraft_altitude_to_low(self.to_low_height):
+        if self.sim.is_aircraft_altitude_to_low(self.crash_height_ft):
             distance_error = aircraft_position.distance_to_target(self.target_position) * 6
             print("is_aircraft_altitude_to_low: distance_error", distance_error)
             return - np.clip(abs(distance_error), 0, 10)
@@ -193,8 +173,6 @@ class TrackEnvWind(MainEnv):
             reward = 9 + heading_bonus
 
             print("at target, positive reward: ", reward)
-
-            # reward for height
             return reward
 
         if self.sim.is_aircraft_at_target(self.target_position, aircraft_position=self._aircraft_position(),
@@ -212,7 +190,6 @@ class TrackEnvWind(MainEnv):
             vertical_track_error = self._calc_vertical_track_error(aircraft_position, self.target_position)
 
             track_error = abs(cross_track_error) + abs(vertical_track_error)
-
             diff_track = abs(self.last_track_error - track_error)
 
             diff_headings = abs(math.radians(utils.normalize_angle_deg(runway_heading_error_deg - self.last_runway_heading_error_deg[-1])) / math.pi)
@@ -247,7 +224,7 @@ class TrackEnvWind(MainEnv):
 
     def _is_done(self) -> bool:
         is_terminal_step = self.steps_left < 1
-        is_aircraft_altitude_to_low = self.sim.is_aircraft_altitude_to_low(self.to_low_height) # convert to ft
+        is_aircraft_altitude_to_low = self.sim.is_aircraft_altitude_to_low(self.crash_height_ft)
         is_aircraft_at_target = self.sim.is_aircraft_at_target(self.target_position, aircraft_position=self._aircraft_position(),
                                                             target_position=self.target_position,
                                                             threshold=self.min_distance_to_target_km)
@@ -263,7 +240,7 @@ class TrackEnvWind(MainEnv):
 
         return is_done
 
-    def _in_area(self):
+    def _is_in_area(self):
         difference_vector = self.target_position - self._aircraft_position()
         relative_bearing_to_aircraft_deg = utils.normalize_angle_deg(difference_vector.direction_2d_deg() - self.runway_angle_deg) % 360
 
@@ -288,6 +265,7 @@ class TrackEnvWind(MainEnv):
             return True
         return False
 
+
 class TrackEnvNoWind(TrackEnvWind):
     action_space = gym.spaces.Box(-1, 1, (2,), dtype=np.float32)
     observation_space: gym.Space = gym.spaces.Box(-np.inf, np.inf, shape=(15,), dtype=np.float32)
@@ -295,6 +273,7 @@ class TrackEnvNoWind(TrackEnvWind):
     def setup_episode(self):
         self.sim[prp.wind_east_fps] = 0
 
+        # Increasing difficulty for incrementing phase
         if self.phase == 0:
             self.spawn_target_distance_km = 0.5
         elif self.phase == 1:
@@ -319,7 +298,7 @@ class TrackEnvNoWind(TrackEnvWind):
         turn_rate = self.sim.get_turn_rate()
         altitude_rate_fps = self.sim[prp.altitude_rate_fps]
 
-        in_area = self._in_area()
+        in_area = self._is_in_area()
         if in_area:
             cross_track_error = self._calc_cross_track_error(aircraft_position, self.target_position)
         else:
@@ -327,14 +306,14 @@ class TrackEnvNoWind(TrackEnvWind):
         vertical_track_error = self._calc_vertical_track_error(aircraft_position, self.target_position)
 
         distance_to_target_km = aircraft_position.distance_to_target(self.target_position) / self.max_distance_km
-        rest_height_ft = (diff.z * 3281) / self.max_height_ft
+        rest_height_ft = (diff.z * 3281) / self.max_starting_height_ft
 
         return np.array([
             in_area,
             cross_track_error,
             vertical_track_error,
             abs(rest_height_ft),
-            altitude_rate_fps / self.max_height_ft,
+            altitude_rate_fps / self.max_starting_height_ft,
             distance_to_target_km,
             true_airspeed / 1000,
             turn_rate,

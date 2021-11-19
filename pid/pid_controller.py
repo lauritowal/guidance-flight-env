@@ -1,13 +1,12 @@
 import time
 import properties as prp
-from gym_jsbsim import aircraft
 from simulation import Simulation
 import numpy as np
 
 import os
 dirname = os.path.dirname(__file__)
 
-# TODO: Add altitude hold controller?
+
 class PidController(object):
     MAX_TURN_RATE_DEG = 3.0
     error_gammas_rad = 0
@@ -15,10 +14,9 @@ class PidController(object):
     def elevator_hold(self, pitch_angle_reference, pitch_angle_current, pitch_angle_rate_current):
         error_pitch_angle = pitch_angle_reference - pitch_angle_current
         derivative = pitch_angle_rate_current
-        p_e = -8  # K_u=-10 T_u = 24
+        p_e = -8
         d_e = -0.5
-        elevatorCommand = np.clip(error_pitch_angle * p_e - derivative * d_e, -1, 1)
-        return elevatorCommand
+        return np.clip(error_pitch_angle * p_e - derivative * d_e, -1, 1)
 
     def bank_angle_hold(self, roll_angle_reference, roll_angle_current, roll_angle_rate) -> float:
         roll_angle_reference = np.clip(roll_angle_reference, np.deg2rad(-20), np.deg2rad(20))
@@ -48,7 +46,6 @@ class PidController(object):
 
         roll_angle_command: float = turn_rate * true_air_speed / 9.81
 
-
         return self.bank_angle_hold(np.deg2rad(roll_angle_command),
                                roll_angle_current_rad,
                                roll_angle_rate)
@@ -75,8 +72,6 @@ class PidController(object):
                                            q_radps=q_radps,
                                            roll_rad=roll_rad,
                                            r_radps=r_radps)
-
-        # return self.elevator_hold(pitch_angle_reference=vs, pitch_angle_current=pitch_rad, pitch_angle_rate_current=q_radps)
 
     def altitude_hold(self, altitude_reference_ft, altitude_ft, ground_speed, pitch_rad, alpha_rad, q_radps, roll_rad, r_radps):
         vs = (altitude_reference_ft - altitude_ft) * 0.0833333

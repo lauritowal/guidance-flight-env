@@ -4,7 +4,7 @@ import time
 from typing import Dict, Union
 import properties as prp
 from aircraft import Aircraft, cessna172P
-from utils.element_3d import Element3d
+from utils.object_3d import Object3D
 import numpy as np
 import math
 
@@ -257,7 +257,7 @@ class Simulation(object):
 
     def get_track_angle_deg(self) -> float:
         v_north_fps, v_east_fps = self[prp.v_north_fps], self[prp.v_east_fps]
-        track_angle_deg = Element3d(v_east_fps, v_north_fps).direction_2d_deg()
+        track_angle_deg = Object3D(v_east_fps, v_north_fps).direction_2d_deg()
         return track_angle_deg
 
     def get_true_air_speed(self):
@@ -277,8 +277,8 @@ class Simulation(object):
         return max_distance / 1000  # in kilometers
 
     def is_aircraft_at_target(self, target_position1,
-                               aircraft_position: Element3d,
-                               target_position: Element3d,
-                               threshold: float):
+                              aircraft_position: Object3D,
+                              target_position: Object3D,
+                              threshold: float):
         diff_position = target_position1 - aircraft_position
         return aircraft_position.distance_to_target(target_position) <= threshold and abs(diff_position.z) <= 30 / 1000
