@@ -105,6 +105,12 @@ class TrackEnvWind(MainEnv):
             "is_aircraft_altitude_to_low": is_aircraft_altitude_to_low
         }
 
+    def _get_reference_heading_deg(self, action: np.ndarray):
+        x = action[0]
+        y = action[1]
+        heading_deg = math.degrees(math.atan2(y, x))
+        return heading_deg % 360
+
     def _create_localizer(self):
         distance_km = -1
         heading = self.runway_angle_deg
@@ -353,3 +359,11 @@ class TrackEnvNoWind(TrackEnvWind):
             math.sin(math.radians(runway_heading_error_deg)),
             math.cos(math.radians(runway_heading_error_deg))
         ], dtype=np.float32)
+
+
+class TrackEnvSingleActionValue(TrackEnvWind):
+    action_space = gym.spaces.Box(-1, 1, (1,), dtype=np.float32)
+
+    def _get_reference_heading_deg(self, action: np.ndarray):
+        heading_deg = action[0]
+        return heading_deg % 360

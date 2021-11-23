@@ -91,6 +91,10 @@ class MainEnv(gym.Env, ABC):
     def _get_observation(self):
         ...
 
+    @abstractmethod
+    def _get_reference_heading_deg(self, action: np.ndarray):
+        ...
+
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
         self.action_space.seed(seed)
@@ -140,17 +144,14 @@ class MainEnv(gym.Env, ABC):
         if not (action.shape == self.action_space.shape):
             raise ValueError('mismatch between action and action space size')
 
-        x = action[0]
-        y = action[1]
-        heading_deg = math.degrees(math.atan2(y, x))
+        reference_heading_deg = self._get_reference_heading_deg(action)
 
-        action_target_heading_deg = heading_deg % 360
         self.sim[prp.elevator_cmd] = self.pid_controller.elevator_hold(pitch_angle_reference=math.radians(0),
                                                                        pitch_angle_current=self.sim[prp.pitch_rad],
                                                                        pitch_angle_rate_current=self.sim[prp.q_radps])
 
         self.sim[prp.aileron_cmd] = self.pid_controller.heading_hold(
-            heading_reference_deg=action_target_heading_deg,
+            heading_reference_deg=reference_heading_deg,
             heading_current_deg=self.sim.get_heading_true_deg(),
             roll_angle_current_rad=self.sim[prp.roll_rad],
             roll_angle_rate=self.sim[prp.p_radps],
