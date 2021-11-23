@@ -66,6 +66,7 @@ class Plotter:
             vertical_track_errors.append(info["vertical_track_error"])
             cross_track_errors.append(info["cross_track_error"])
             in_area.append(info["in_area"])
+
             if info["in_area"] == True:
                 in_area_colors.append([255, 0, 0])
             else:
@@ -96,17 +97,7 @@ class Plotter:
         ax5.set_xlabel('altitude (ft)')
 
         ax6 = plt.subplot(gs[5])
-        ax6.set_xlabel('gammas (deg)')
-
-        ax7 = plt.subplot(gs[6])
-        ax7.set_xlabel('track- and heading angle (deg)')
-
-        ax8 = plt.subplot(gs[7])
-        ax8.set_xlabel('wind east & north (fps)')
-        #
-        # ax8 = plt.subplot(gs[7])
-        # ax8.set_xlabel('alpha (deg)')
-
+        ax6.set_xlabel('wind east & north (fps)')
 
         ax1.set_xlim([-self.bounds_radius_km + self.aircraft_initial_position.x,
                        self.bounds_radius_km + self.aircraft_initial_position.x])
@@ -152,18 +143,9 @@ class Plotter:
 
         ax5.plot(time_steps, altitudes)
 
-        ax6.plot(time_steps, gammas)
-        ax6.plot(time_steps, pitches)
-        ax6.plot(time_steps, alphas)
-        ax6.legend(["gamma", "pitch", "alpha"])
-
-        ax7.plot(time_steps, track_angles)
-        ax7.plot(time_steps, aircraft_true_headings)
-        ax7.legend(["track angle", "yaw / heading (true)", ])
-
-        ax8.plot(time_steps, winds_east_fps)
-        ax8.plot(time_steps, winds_north_fps)
-        ax8.legend(["wind east", "wind north"])
+        ax6.plot(time_steps, winds_east_fps)
+        ax6.plot(time_steps, winds_north_fps)
+        ax6.legend(["wind east", "wind north"])
 
         canvas.draw()
         rendered = np.array(canvas.renderer.buffer_rgba())
@@ -181,9 +163,6 @@ class Plotter:
         runway_angle_thresholds = []
         aircraft_true_headings = []
         track_errors = []
-        pitches = []
-        gammas = []
-        alphas = []
         altitude_rates_fps = []
         altitudes = []
         altitude_errors = []
@@ -202,9 +181,6 @@ class Plotter:
             time_steps.append(info["simulation_time_step"])
             runway_angles.append(info["runway_angle"])
             altitudes.append(info["altitude"])
-            pitches.append(np.rad2deg(info["pitch_rad"]))
-            gammas.append(info["gamma_deg"])
-            alphas.append(np.degrees(info["alpha_rad"]))
             aircraft_zs.append(info["aircraft_z"])
             altitude_errors.append(info["altitude_error"])
             track_errors.append(info["track_error"])
