@@ -4,7 +4,6 @@ import numpy as np
 from utils import utils
 import properties as prp
 from dataclasses import dataclass
-
 from environments.main_env import MainEnv
 from utils.object_3d import Object3D
 

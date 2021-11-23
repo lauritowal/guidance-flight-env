@@ -1,7 +1,4 @@
 import math
-from array import array
-from typing import List
-
 import gym
 import numpy as np
 from gym.utils import seeding
@@ -11,8 +8,7 @@ from simulation import Simulation
 from utils import utils
 from aircraft import cessna172P, Aircraft
 import properties as prp
-from dataclasses import dataclass, field
-
+from dataclasses import dataclass
 from utils.object_3d import Object3D
 from abc import ABC, abstractmethod
 
