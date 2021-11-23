@@ -6,3 +6,4 @@ examples/rllib/htmls/*
 examples/rllib/images/*
 tests/images/*
 .idea
+*.egg-info
