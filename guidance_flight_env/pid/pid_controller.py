@@ -1,6 +1,3 @@
-import time
-import properties as prp
-from simulation import Simulation
 import numpy as np
 
 import os

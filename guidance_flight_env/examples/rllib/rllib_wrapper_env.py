@@ -1,4 +1,4 @@
-from environments.track_env import TrackEnvWind
+from guidance_flight_env.environments.track_env import TrackEnvWind
 
 
 class RllibWrapperEnv(TrackEnvWind):

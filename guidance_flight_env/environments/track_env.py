@@ -1,11 +1,11 @@
 import math
 import gym
 import numpy as np
-from utils import utils
-import properties as prp
+from guidance_flight_env.utils import utils
+from guidance_flight_env import properties as prp
 from dataclasses import dataclass
-from environments.main_env import MainEnv
-from utils.object_3d import Object3D
+from guidance_flight_env.environments.main_env import MainEnv
+from guidance_flight_env.utils.object_3d import Object3D
 
 
 @dataclass
@@ -225,7 +225,8 @@ class TrackEnvWind(MainEnv):
             track_error = abs(cross_track_error) + abs(vertical_track_error)
             diff_track = abs(self.last_track_error - track_error)
 
-            diff_headings = abs(math.radians(utils.normalize_angle_deg(runway_heading_error_deg - self.last_runway_heading_error_deg[-1])) / math.pi)
+            diff_headings = abs(math.radians(
+                utils.normalize_angle_deg(runway_heading_error_deg - self.last_runway_heading_error_deg[-1])) / math.pi)
             if self._is_on_track():
                 if abs(runway_heading_error_deg) < abs(self.last_runway_heading_error_deg[-1]):
                     reward_heading = diff_headings

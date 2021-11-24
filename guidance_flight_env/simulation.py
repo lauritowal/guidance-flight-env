@@ -2,9 +2,9 @@ import jsbsim
 import os
 import time
 from typing import Dict, Union
-import properties as prp
-from aircraft import Aircraft, cessna172P
-from utils.object_3d import Object3D
+import guidance_flight_env.properties as prp
+from guidance_flight_env.aircraft import Aircraft, cessna172P
+from guidance_flight_env.utils.object_3d import Object3D
 import numpy as np
 import math
 

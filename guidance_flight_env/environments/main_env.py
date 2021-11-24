@@ -2,14 +2,14 @@ import math
 import gym
 import numpy as np
 from gym.utils import seeding
-from pid.pid_controller import PidController
-from services.plotter import Plotter
-from simulation import Simulation
-from utils import utils
-from aircraft import cessna172P, Aircraft
-import properties as prp
+from guidance_flight_env.pid.pid_controller import PidController
+from guidance_flight_env.services.plotter import Plotter
+from guidance_flight_env.simulation import Simulation
+from guidance_flight_env.utils import utils
+from guidance_flight_env.aircraft import cessna172P, Aircraft
+from guidance_flight_env import properties as prp
 from dataclasses import dataclass
-from utils.object_3d import Object3D
+from guidance_flight_env.utils.object_3d import Object3D
 from abc import ABC, abstractmethod
 
 

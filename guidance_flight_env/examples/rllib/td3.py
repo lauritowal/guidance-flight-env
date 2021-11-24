@@ -6,12 +6,12 @@ from ray import tune
 import os
 import sys
 
-sys.path.append("../..")
+sys.path.append("../../..")
 checkpoint_dir = os.path.dirname(os.path.realpath(__file__))
 
-from aircraft import cessna172P
-from examples.rllib.rllib_wrapper_env import RllibWrapperEnv
-from examples.rllib.custom_callbacks import CustomCallbacks
+from guidance_flight_env.aircraft import cessna172P
+from guidance_flight_env.examples.rllib.rllib_wrapper_env import RllibWrapperEnv
+from guidance_flight_env.examples.rllib.custom_callbacks import CustomCallbacks
 
 SEED = 1
 

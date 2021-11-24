@@ -1,9 +1,9 @@
-from agents.agents import  RandomAgent, ConstantAgent
-from services.plotter import Plotter
-from utils.utils import evaluate
-from aircraft import cessna172P
+from guidance_flight_env.agents import  RandomAgent, ConstantAgent
+from guidance_flight_env.services.plotter import Plotter
+from guidance_flight_env.utils.utils import evaluate
+from guidance_flight_env.aircraft import cessna172P
 
-from environments.track_env import TrackEnvNoWind
+from guidance_flight_env.environments.track_env import TrackEnvNoWind
 
 env = TrackEnvNoWind(
         jsbsim_path="/Users/walter/thesis_project/jsbsim",

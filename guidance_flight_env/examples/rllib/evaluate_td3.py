@@ -1,12 +1,11 @@
 import ray
-from environments.track_env import TrackEnvNoWind
-from examples.rllib.custom_callbacks import CustomCallbacks
-from examples.rllib.rllib_wrapper_env import RllibWrapperEnv
+from guidance_flight_env.examples.rllib.custom_callbacks import CustomCallbacks
+from guidance_flight_env.examples.rllib.rllib_wrapper_env import RllibWrapperEnv
 from ray.rllib.agents.ddpg import TD3Trainer, td3
 from ray.tune import register_env
 import numpy as np
-from services.plotter import Plotter
-from aircraft import cessna172P
+from guidance_flight_env.services.plotter import Plotter
+from guidance_flight_env.aircraft import cessna172P
 import os
 dirname = os.path.dirname(__file__)
 IMAGE_PATH = os.path.join(dirname, 'images')
@@ -55,7 +54,7 @@ if __name__ == "__main__":
     env = env_creator(env_config)
 
     config = {**default_config, **custom_config}
-    register_env("track-env-wind", lambda config: env_creator(config))
+    register_env("trackEnvWind", lambda config: env_creator(config))
     resources = TD3Trainer.default_resource_request(config).to_json()
 
     ### Evaluate
@@ -75,7 +74,7 @@ if __name__ == "__main__":
     distances = []
     successes = 0
 
-    agent = TD3Trainer(config=config, env="guidance-continuous-v0")
+    agent = TD3Trainer(config=config, env="guidance_flight_env-continuous-v0")
     agent.restore(f'{dir_path}/data/checkpoints/checkpoint_1/checkpoint-1')
 
     infos = []

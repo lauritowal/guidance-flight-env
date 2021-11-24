@@ -1,9 +1,8 @@
 .venv
-/*.egg-info
-checkpoints/*
-examples/rllib/checkpoints/*
-examples/rllib/htmls/*
-examples/rllib/images/*
-tests/images/*
-.idea
 *.egg-info
+checkpoints/*
+guidance_flight_env/examples/rllib/checkpoints/*
+guidance_flight_env/examples/rllib/htmls/*
+guidance_flight_env/examples/rllib/images/*
+guidance_flight_env/tests/images/*
+.idea

@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 
-setup(name='guidance_flight_env',
+setup(name='guidance_flight_env-flight-env',
       version='0.1',
       description='',
       url='',
