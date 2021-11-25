@@ -1,3 +1,5 @@
+# Taken from: https://github.com/Gor-Ren/gym-jsbsim
+
 import gym
 import numpy as np
 from abc import ABC, abstractmethod
