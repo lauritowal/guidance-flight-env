@@ -1,3 +1,4 @@
+# Taken and adapted from: https://github.com/Gor-Ren/gym-jsbsim
 import jsbsim
 import os
 import time

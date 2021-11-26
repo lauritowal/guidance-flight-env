@@ -1,3 +1,5 @@
+# Taken and adapted from https://github.com/Gor-Ren/gym-jsbsim
+
 import math
 import collections
 
