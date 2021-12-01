@@ -1,7 +1,7 @@
 # Guidance Env
 Gym environments for flight guidance.
 
-Some parts are taken from https://github.com/Gor-Ren/gym-jsbsim which is commented in the code.
+Some parts are taken from https://github.com/Gor-Ren/gym-jsbsim which are commented in the code.
 
 ## Getting started
 1. Clone jsbsim: `git clone https://github.com/JSBSim-Team/jsbsim.git`
