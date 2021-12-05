@@ -510,7 +510,7 @@ class TrackEnvNoWind(TrackEnvWind):
 
         # Increasing difficulty for incrementing phase
         if self.phase == 0:
-            self.spawn_target_distance_km = 0.6
+            self.spawn_target_distance_km = 0.7
         elif self.phase == 1:
             self.spawn_target_distance_km = 1
         elif self.phase == 2:
