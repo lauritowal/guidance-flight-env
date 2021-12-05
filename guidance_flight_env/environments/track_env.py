@@ -50,6 +50,8 @@ class TrackEnvWind(gym.Env):
     np_random: float = None
     steps_left: int = 0
     evaluation: bool = False
+    localizer_position: Object3D = None
+    localizer_perpendicular_position: Object3D = None
 
     def __post_init__(self):
         self.infos = []
@@ -72,7 +74,6 @@ class TrackEnvWind(gym.Env):
 
         if self.max_distance_km == None:
             self.max_distance_km = self.sim.calculate_max_distance_km(self.max_episode_time_s)
-
 
     def setup_episode(self):
         # Increasing difficulty for incrementing phase
@@ -465,7 +466,7 @@ class TrackEnvWind(gym.Env):
         return Object3D(x / 1000, y / 1000, z, self.sim.get_heading_true_deg())
 
     def _generate_random_target_position(self) -> (Object3D, float):
-        start_distance = 600 / 1000
+        start_distance_km = 0.6
 
         def random_sign():
             if self.np_random.random() < 0.5:
@@ -473,7 +474,7 @@ class TrackEnvWind(gym.Env):
             return -1
 
         x = self.np_random.uniform(0, self.spawn_target_distance_km) * random_sign()
-        y = self.np_random.uniform(start_distance, self.spawn_target_distance_km) * random_sign()
+        y = self.np_random.uniform(start_distance_km, self.spawn_target_distance_km) * random_sign()
         z = self.np_random.uniform(0.2,
                                    (self.sim[prp.initial_altitude_ft] / 3281) / 2) + self.min_height_for_flare_m / 1000
 
@@ -509,7 +510,7 @@ class TrackEnvNoWind(TrackEnvWind):
 
         # Increasing difficulty for incrementing phase
         if self.phase == 0:
-            self.spawn_target_distance_km = 0.5
+            self.spawn_target_distance_km = 0.6
         elif self.phase == 1:
             self.spawn_target_distance_km = 1
         elif self.phase == 2:
@@ -518,6 +519,11 @@ class TrackEnvNoWind(TrackEnvWind):
             self.spawn_target_distance_km = 2
         elif self.phase == 4:
             self.spawn_target_distance_km = self.max_distance_km
+
+        self.last_track_error = 0
+        self.last_track_error_perpendicular = 0
+        self.localizer_position = self._create_localizer()
+        self.localizer_perpendicular_position = self._create_perpendicular_localizer()
 
         self.sim.raise_landing_gear()
         self.sim.stop_engines()

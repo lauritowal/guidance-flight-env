@@ -49,10 +49,11 @@ class Plotter:
         ax.set_xlabel('x')
         ax.set_ylabel('y')
 
-        ax.set_xlim([-self.bounds_radius_km + self.aircraft_initial_position.x,
-                       self.bounds_radius_km + self.aircraft_initial_position.x])
-        ax.set_ylim([-self.bounds_radius_km + self.aircraft_initial_position.y,
-                       self.bounds_radius_km + self.aircraft_initial_position.y])
+        lim_scale = 2
+        ax.set_xlim([-lim_scale*self.bounds_radius_km + self.aircraft_initial_position.x,
+                       lim_scale*self.bounds_radius_km + self.aircraft_initial_position.x])
+        ax.set_ylim([-lim_scale*self.bounds_radius_km - self.aircraft_initial_position.y,
+                       lim_scale*self.bounds_radius_km + self.aircraft_initial_position.y])
 
         bounds = plt.Circle((self.aircraft_initial_position.x, self.aircraft_initial_position.y),
                             self.bounds_radius_km, fill=False, color='red')

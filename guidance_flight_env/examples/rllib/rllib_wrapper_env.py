@@ -1,7 +1,7 @@
-from guidance_flight_env.environments.track_env import TrackEnvWind
+from guidance_flight_env.environments.track_env import TrackEnvWind, TrackEnvNoWind
 
 
-class RllibWrapperEnv(TrackEnvWind):
+class RllibWrapperEnv(TrackEnvNoWind):
     def __init__(self, config):
 
         if config["evaluation"]:
