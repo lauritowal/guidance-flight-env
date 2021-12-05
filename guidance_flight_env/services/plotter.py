@@ -45,13 +45,13 @@ class Plotter:
         figure = plt.figure(figsize=[10,9])
         canvas = FigureCanvas(figure)
 
-        ax1 = plt.subplot()
-        ax1.set_xlabel('x')
-        ax1.set_ylabel('y')
+        ax = plt.subplot()
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
 
-        ax1.set_xlim([-self.bounds_radius_km + self.aircraft_initial_position.x,
+        ax.set_xlim([-self.bounds_radius_km + self.aircraft_initial_position.x,
                        self.bounds_radius_km + self.aircraft_initial_position.x])
-        ax1.set_ylim([-self.bounds_radius_km + self.aircraft_initial_position.y,
+        ax.set_ylim([-self.bounds_radius_km + self.aircraft_initial_position.y,
                        self.bounds_radius_km + self.aircraft_initial_position.y])
 
         bounds = plt.Circle((self.aircraft_initial_position.x, self.aircraft_initial_position.y),
@@ -64,11 +64,11 @@ class Plotter:
         target_spawn_area = plt.Circle((self.aircraft_initial_position.x, self.aircraft_initial_position.y),
                                        self.target_spawn_area_radius_km, fill=False, color='grey')
 
-        ax1.set_aspect(1)
-        ax1.add_artist(bounds)
-        ax1.add_artist(target)
-        ax1.add_artist(target_spawn_area)
-        ax1.scatter(xs, ys, c=np.array(in_area)/255.0, s=0.1)
+        ax.set_aspect(1)
+        ax.add_artist(bounds)
+        ax.add_artist(target)
+        ax.add_artist(target_spawn_area)
+        ax.scatter(xs, ys, c=np.array(in_area)/255.0, s=0.1)
 
         canvas.draw()
         rendered = np.array(canvas.renderer.buffer_rgba())

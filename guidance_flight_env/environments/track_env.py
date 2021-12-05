@@ -504,6 +504,7 @@ class TrackEnvNoWind(TrackEnvWind):
     observation_space: gym.Space = gym.spaces.Box(-np.inf, np.inf, shape=(15,), dtype=np.float32)
 
     def setup_episode(self):
+        # no wind in this environment
         self.sim[prp.wind_east_fps] = 0
 
         # Increasing difficulty for incrementing phase
