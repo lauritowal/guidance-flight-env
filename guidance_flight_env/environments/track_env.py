@@ -26,11 +26,10 @@ class TrackEnvWind(gym.Env):
     metadata = {"render.modes": ["rgb-array"]}
     jsbsim_path: str
     episode_counter: int = 0
-    max_distance_km: float = math.inf
     aircraft: Aircraft = cessna172P
     agent_interaction_freq: int = 5
     target_radius_km: float = 100 / 1000
-    max_target_distance_km: int = 2
+    max_distance_km: int = 2
     max_episode_time_s: int = 60 * 5
     phase: int = 0
     glide_angle_deg: float = 4
@@ -71,6 +70,10 @@ class TrackEnvWind(gym.Env):
         self.episode_steps = math.ceil(self.max_episode_time_s * self.agent_interaction_freq)
         self.steps_left = self.episode_steps
 
+        if self.max_distance_km == None:
+            self.max_distance_km = self.sim.calculate_max_distance_km(self.max_episode_time_s)
+
+
     def setup_episode(self):
         # Increasing difficulty for incrementing phase
         if self.phase == 0:
@@ -86,7 +89,7 @@ class TrackEnvWind(gym.Env):
             self.spawn_target_distance_km = 2
             self.sim[prp.wind_east_fps] = self.np_random.uniform(-40, 40)
         elif self.phase == 4:
-            self.spawn_target_distance_km = self.max_target_distance_km
+            self.spawn_target_distance_km = self.max_distance_km
             self.sim[prp.wind_east_fps] = self.np_random.uniform(-55, 55)
 
         self.last_track_error = 0
@@ -371,7 +374,6 @@ class TrackEnvWind(gym.Env):
 
         self.steps_left = self.episode_steps
         self.runway_angle_deg = 0
-        self.max_distance_km = self.sim.calculate_max_distance_km(self.max_episode_time_s)
         self.sim.start_engines()
         self.sim.set_throttle_mixture_controls(0.8, 0.7)
         self.sim.raise_landing_gear()
@@ -441,7 +443,7 @@ class TrackEnvWind(gym.Env):
 
     def render(self, mode='rgb_array') -> np.array:
         if mode == 'rgb_array':
-            return self.plotter.render_rgb_array(infos=self.infos)
+            return self.plotter.render_rgb_array_simple(infos=self.infos)
 
     def _init_new_sim(self, dt, aircraft, initial_conditions):
         return Simulation(sim_frequency_hz=dt,
@@ -514,7 +516,7 @@ class TrackEnvNoWind(TrackEnvWind):
         elif self.phase == 3:
             self.spawn_target_distance_km = 2
         elif self.phase == 4:
-            self.spawn_target_distance_km = self.max_target_distance_km
+            self.spawn_target_distance_km = self.max_distance_km
 
         self.sim.raise_landing_gear()
         self.sim.stop_engines()

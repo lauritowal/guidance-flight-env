@@ -17,6 +17,64 @@ class Plotter:
         self.aircraft_initial_position = aircraft_initial_position
         self.glide_angle_deg = glide_angle_deg
 
+        print("#### Plotter ####")
+        print("target_position", self.target_position)
+        print("bounds_radius_km", self.bounds_radius_km)
+        print("target_spawn_area_radius_km", self.target_spawn_area_radius_km)
+        print("target_radius_km", self.target_radius_km)
+        print("runway_angle_deg", self.runway_angle_deg)
+        print("aircraft_initial_position", self.aircraft_initial_position)
+        print("glide_angle_deg", self.glide_angle_deg)
+
+    def render_rgb_array_simple(self, infos) -> np.array:
+        xs = []
+        ys = []
+        in_area = []
+        in_area_colors = []
+
+        for info in infos:
+            xs.append(info["aircraft_y"])
+            ys.append(info["aircraft_x"])
+            in_area.append(info["in_area"])
+
+            if info["in_area"] == True:
+                in_area_colors.append([255, 0, 0])
+            else:
+                in_area_colors.append([0, 0, 255])
+
+        figure = plt.figure(figsize=[10,9])
+        canvas = FigureCanvas(figure)
+
+        ax1 = plt.subplot()
+        ax1.set_xlabel('x')
+        ax1.set_ylabel('y')
+
+        ax1.set_xlim([-self.bounds_radius_km + self.aircraft_initial_position.x,
+                       self.bounds_radius_km + self.aircraft_initial_position.x])
+        ax1.set_ylim([-self.bounds_radius_km + self.aircraft_initial_position.y,
+                       self.bounds_radius_km + self.aircraft_initial_position.y])
+
+        bounds = plt.Circle((self.aircraft_initial_position.x, self.aircraft_initial_position.y),
+                            self.bounds_radius_km, fill=False, color='red')
+
+        target = plt.Circle((self.target_position.x + self.aircraft_initial_position.x,
+                             self.target_position.y + self.aircraft_initial_position.y),
+                            self.target_radius_km, fill=False, color='green')
+
+        target_spawn_area = plt.Circle((self.aircraft_initial_position.x, self.aircraft_initial_position.y),
+                                       self.target_spawn_area_radius_km, fill=False, color='grey')
+
+        ax1.set_aspect(1)
+        ax1.add_artist(bounds)
+        ax1.add_artist(target)
+        ax1.add_artist(target_spawn_area)
+        ax1.scatter(xs, ys, c=np.array(in_area)/255.0, s=0.1)
+
+        canvas.draw()
+        rendered = np.array(canvas.renderer.buffer_rgba())
+        plt.close('all')
+        return rendered
+
     def render_rgb_array(self, infos) -> np.array:
         xs = []
         ys = []
