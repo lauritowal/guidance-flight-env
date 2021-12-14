@@ -18,7 +18,6 @@ class Simulation(object):
     A class which wraps an instance of JSBSim and manages communication with it.
     """
     encoding = 'utf-8'  # encoding of bytes returned by JSBSim Cython funcs
-    OUTPUT_FILE = 'flightgear.xml'
     LONGITUDINAL = 'longitudinal'
     FULL = 'full'
 
@@ -27,7 +26,6 @@ class Simulation(object):
                  sim_frequency_hz: float = 60.0,
                  aircraft: Aircraft = cessna172P,
                  init_conditions: Dict[prp.Property, float] = None,
-                 allow_flightgear_output: bool = True,
                  jsbsim_path: str = "",
                  offset=0):
         """
@@ -38,15 +36,9 @@ class Simulation(object):
             JSBSim looks for file \model_name\model_name.xml from root dir.
         :param init_conditions: dict mapping properties to their initial values.
             Defaults to None, causing a default set of initial props to be used.
-        :param allow_flightgear_output: bool, loads a config file instructing
-            JSBSim to connect to an output socket if True.
         """
         self.jsbsim = jsbsim.FGFDMExec(root_dir=os.path.abspath(jsbsim_path))
         self.jsbsim.set_debug_level(0)
-        if allow_flightgear_output:
-            flightgear_output_config = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                                    self.OUTPUT_FILE)
-            self.jsbsim.set_output_directive(flightgear_output_config)
         self.sim_dt = 1.0 / sim_frequency_hz
         self.aircraft = aircraft
         self.initialise(self.sim_dt, self.aircraft.jsbsim_id, init_conditions)
@@ -198,12 +190,6 @@ class Simulation(object):
         if self.wall_clock_dt is not None:
             time.sleep(self.wall_clock_dt)
         return result
-
-    def enable_flightgear_output(self):
-        self.jsbsim.enable_output()
-
-    def disable_flightgear_output(self):
-        self.jsbsim.disable_output()
 
     def close(self):
         """ Closes the simulation and any plots. """

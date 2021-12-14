@@ -58,7 +58,7 @@ class GuidanceEnv(gym.Env):
     pid_controller: PidController = PidController()
 
     metadata = {
-        "render.modes": ["rgb-array", "flightgear", "jsbsim"]
+        "render.modes": ["rgb-array"]
     }
 
     episode_counter = 0
