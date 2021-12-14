@@ -88,8 +88,7 @@ class Simulation(object):
         load_success = self.jsbsim.load_model(model_name)
 
         if not load_success:
-            raise RuntimeError('JSBSim could not find specified model_name: '
-                               + model_name)
+            raise RuntimeError('JSBSim could not find specified model_name: ' + model_name)
 
     def get_aircraft(self) -> Aircraft:
         """
@@ -148,6 +147,10 @@ class Simulation(object):
         success = self.jsbsim.run_ic()
         if not success:
             raise RuntimeError('JSBSim failed to init simulation conditions.')
+
+        print("test jsbsim...")
+        print(self.jsbsim.print_property_catalog())
+
 
     def set_custom_initial_conditions(self,
                                       init_conditions: Dict['prp.Property', float] = None) -> None:
