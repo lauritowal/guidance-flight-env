@@ -127,7 +127,7 @@ class MapPlotter:
             altitude_rates_fps.append(info["altitude_rate_fps"])
             runway_angle_errors.append(info["runway_angle_error"])
             runway_angle_thresholds.append(info["runway_angle_threshold_deg"])
-            speeds.append(info["true_air_speed"])
+            speeds.append(info["true_airspeed"])
             time_steps.append(info["simulation_time_step"])
             runway_angles.append(info["runway_angle"])
             altitudes.append(info["altitude"])
