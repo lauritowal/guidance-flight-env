@@ -1,22 +1,12 @@
-import matplotlib.pyplot as plt
-from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-
 from PIL import ImageDraw
-import numpy as np
-from PIL import Image
-
-
 import plotly.graph_objects as go
-
 from plotly.subplots import make_subplots
 import numpy as np
-import io
 from PIL import Image
 from matplotlib import pyplot as plt
 from celluloid import Camera
 import io
-import base64
 from matplotlib import gridspec
 
 
@@ -388,17 +378,5 @@ class MapPlotter:
             ),
             row=1, col=1
         )
-
-
-        # fig.add_trace(
-        #     go.Scatter3d(
-        #         name="example",
-        #         x=[self.example_position.x],
-        #         y=[self.example_position.y],
-        #         z=[self.example_position.z],
-        #     ),
-        #     row=1, col=1
-        # )
-
 
         fig.write_html(path)
