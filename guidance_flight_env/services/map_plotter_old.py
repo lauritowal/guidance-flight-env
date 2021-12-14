@@ -15,10 +15,8 @@ import io
 from PIL import Image
 from matplotlib import pyplot as plt
 from celluloid import Camera
-import imageio
 import io
 import base64
-from IPython.display import HTML
 from matplotlib import gridspec
 
 
@@ -37,9 +35,6 @@ class MapPlotter:
         self.aircraft_initial_position = aircraft_initial_position
         self.glide_angle_deg = glide_angle_deg
 
-
-    def convert2gif(self, images, file_name, interval: int = 50):
-        imageio.mimsave(f'{file_name}.gif', [np.array(img) for i, img in enumerate(images) if i % 2 == 0], fps=interval)
 
     @classmethod
     def convert2video(self, images: np.array, file_name: str, interval: int = 50):
@@ -86,14 +81,6 @@ class MapPlotter:
 
             episode_count += 1
 
-
-    @classmethod
-    def play_video(self, filename):
-        video = io.open(filename, 'r+b').read()
-        encoded = base64.b64encode(video)
-        return HTML(data='''<video alt="test" controls>
-                        <source src="data:video/mp4;base64,{0}" type="video/mp4"/>
-                     </video>'''.format(encoded.decode('ascii')))
 
     def render(self, infos) -> np.array:
         xs = []

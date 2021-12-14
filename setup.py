@@ -17,6 +17,7 @@ setup(name='guidance_flight_env-flight-env',
             'ray[rllib]==1.2.0',
             'jsbsim',
             'torch',
+            'imageio',
             'aioredis<2.0.0'
       ],
       packages=find_packages(),
