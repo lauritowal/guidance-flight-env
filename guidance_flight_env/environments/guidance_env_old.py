@@ -483,6 +483,7 @@ class GuidanceEnv(gym.Env):
             "aircraft_q_radps": self.sim[prp.q_radps],
             "simulation_time_step": self.sim.get_sim_time(),
             "reward": reward,
+            "true_airspeed": self.sim.get_true_air_speed(),
             "is_heading_correct": is_heading_correct,
             "terminal_state": terminal_state,
             "is_aircraft_at_target": is_aircraft_at_target,
