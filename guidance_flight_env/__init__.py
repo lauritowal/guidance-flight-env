@@ -9,3 +9,8 @@ gym.envs.register(
      id='track-env-no-wind-v0',
      entry_point='environments.track_env:TrackEnvNoWind'
 )
+
+gym.envs.register(
+     id='guidance-env-no-wind-v0',
+     entry_point='environments.guidance_env_old:GuidanceEnvContinuos'
+)
