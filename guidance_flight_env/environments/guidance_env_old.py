@@ -1,5 +1,4 @@
 import math
-
 import gym
 import numpy as np
 from PIL import Image
@@ -10,6 +9,7 @@ from guidance_flight_env.simulation import Simulation
 from guidance_flight_env.utils import utils_old as utils
 from typing import Tuple
 import guidance_flight_env.properties as prp
+
 
 class CartesianPosition():
     def __init__(self, x, y, z=0, heading=0, offset=0):
@@ -722,6 +722,7 @@ class GuidanceEnv(gym.Env):
                                threshold: float):
         diff_position = self.target_position - aircraft_position
         return aircraft_position.distance_to_target(target_position) <= threshold and abs(diff_position.z) <= 30 / 1000
+
 
 class GuidanceEnvContinuos(GuidanceEnv):
     action_space = gym.spaces.Box(-1, 1, (2,), dtype=np.float32)

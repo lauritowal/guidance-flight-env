@@ -3,7 +3,6 @@ import gym
 from gym.utils import seeding
 import numpy as np
 from dataclasses import dataclass
-from guidance_flight_env import properties as prp
 from guidance_flight_env.pid.pid_controller import PidController
 from guidance_flight_env.services.plotter import Plotter
 from guidance_flight_env.simulation import Simulation
