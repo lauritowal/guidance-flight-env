@@ -263,7 +263,7 @@ class Simulation(object):
 
     def get_track_angle_deg(self) -> float:
         v_north_fps, v_east_fps = self[prp.v_north_fps], self[prp.v_east_fps]
-        track_angle_deg = guidance_flight_env.utils.vector2d.Vector2D(v_east_fps, v_north_fps).heading_deg()
+        track_angle_deg = guidance_flight_env.utils.vector2d_old.Vector2D(v_east_fps, v_north_fps).heading_deg()
         return track_angle_deg
 
     def get_true_air_speed(self):
