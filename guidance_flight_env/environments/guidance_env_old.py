@@ -7,7 +7,7 @@ from gym.utils import seeding
 from guidance_flight_env.pid.pid_controller import PidController
 from guidance_flight_env.services.map_plotter_old import MapPlotter
 from guidance_flight_env.simulation import Simulation
-from guidance_flight_env.utils import utils
+from guidance_flight_env.utils import utils_old as utils
 from typing import Tuple
 import guidance_flight_env.properties as prp
 
@@ -261,8 +261,8 @@ class GuidanceEnv(gym.Env):
         self.localizer_perpendicular_position = self._create_perpendicular_localizer()
         self.last_distance_to_perpendicular_localizer_km = self.max_distance_km
 
-        relative_bearing_deg = utils.normalize_angle_deg(self.target_position.direction_to_target_deg(self.localizer_position) - self.runway_angle_deg)
-        relative_bearing_to_perpendicular_deg = utils.normalize_angle_deg(self.target_position.direction_to_target_deg(self.localizer_perpendicular_position) - self.runway_angle_deg)
+        relative_bearing_deg = utils.reduce_reflex_angle_deg(self.target_position.direction_to_target_deg(self.localizer_position) - self.runway_angle_deg)
+        relative_bearing_to_perpendicular_deg = utils.reduce_reflex_angle_deg(self.target_position.direction_to_target_deg(self.localizer_perpendicular_position) - self.runway_angle_deg)
 
         self.example_point_position = self._create_example_point()
 
@@ -301,7 +301,7 @@ class GuidanceEnv(gym.Env):
 
         self.done = False
 
-        runway_heading_error_deg = utils.normalize_angle_deg(self.sim.get_heading_true_deg() - self.runway_angle_deg)
+        runway_heading_error_deg = utils.reduce_reflex_angle_deg(self.sim.get_heading_true_deg() - self.runway_angle_deg)
         self.last_runway_heading_error_deg.append(runway_heading_error_deg)
 
         self.to_low_height = (self.target_position.z - 10 / 1000) * 3281
@@ -436,7 +436,7 @@ class GuidanceEnv(gym.Env):
 
         is_aircraft_out_of_bounds = self.sim.is_aircraft_out_of_bounds(max_distance_km=self.max_distance_km)
 
-        runway_angle_error_deg = utils.normalize_angle_deg(self.sim.get_heading_true_deg() - self.runway_angle_deg)
+        runway_angle_error_deg = utils.reduce_reflex_angle_deg(self.sim.get_heading_true_deg() - self.runway_angle_deg)
         is_heading_correct = abs(runway_angle_error_deg) < self.runway_angle_threshold_deg
 
         terminal_state = "other"
@@ -536,7 +536,7 @@ class GuidanceEnv(gym.Env):
 
         diff = self.target_position - aircraft_position
 
-        runway_heading_error_deg = utils.normalize_angle_deg(self.sim.get_heading_true_deg() - self.runway_angle_deg)
+        runway_heading_error_deg = utils.reduce_reflex_angle_deg(self.sim.get_heading_true_deg() - self.runway_angle_deg)
         true_airspeed = self.sim.get_true_air_speed()
         # # yaw_rate = self.sim[prp.r_radps]
         turn_rate = self.sim.get_turn_rate()
@@ -582,7 +582,7 @@ class GuidanceEnv(gym.Env):
         # is_aircraft_out_of_bounds = self.sim.is_aircraft_out_of_bounds(max_distance_km=self.max_distance_km)
         is_aircraft_altitude_to_low = self.sim.is_aircraft_altitude_to_low(self.to_low_height) # convert to ft
 
-        runway_heading_error_deg = utils.normalize_angle_deg(self.sim.get_heading_true_deg() - self.runway_angle_deg)
+        runway_heading_error_deg = utils.reduce_reflex_angle_deg(self.sim.get_heading_true_deg() - self.runway_angle_deg)
 
         is_aircraft_at_target = self._is_aircraft_at_target(aircraft_position=self.aircraft_cartesian_position(),
                                                        target_position=self.target_position,
@@ -600,7 +600,7 @@ class GuidanceEnv(gym.Env):
         return is_done
 
     def _in_area(self):
-        relative_bearing_to_aircraft_deg = utils.normalize_angle_deg(self.target_position.direction_to_target_deg(self.aircraft_cartesian_position()) - self.runway_angle_deg) % 360
+        relative_bearing_to_aircraft_deg = utils.reduce_reflex_angle_deg(self.target_position.direction_to_target_deg(self.aircraft_cartesian_position()) - self.runway_angle_deg) % 360
         in_area = False
         if 90 <= relative_bearing_to_aircraft_deg <= 270:
             in_area = True
@@ -608,7 +608,7 @@ class GuidanceEnv(gym.Env):
 
     def _is_on_track(self):
         aircraft_position = self.aircraft_cartesian_position()
-        runway_heading_error_deg = utils.normalize_angle_deg(self.sim.get_heading_true_deg() - self.runway_angle_deg)
+        runway_heading_error_deg = utils.reduce_reflex_angle_deg(self.sim.get_heading_true_deg() - self.runway_angle_deg)
         current_distance_km = aircraft_position.distance_to_target(self.target_position)
 
         cross_track_error = self._calc_cross_track_error(aircraft_position, self.target_position)
@@ -633,7 +633,7 @@ class GuidanceEnv(gym.Env):
             print("is_aircraft_altitude_to_low: distance_error", distance_error)
             return - np.clip(abs(distance_error), 0, 10)
 
-        runway_heading_error_deg = utils.normalize_angle_deg(self.sim.get_heading_true_deg() - self.runway_angle_deg)
+        runway_heading_error_deg = utils.reduce_reflex_angle_deg(self.sim.get_heading_true_deg() - self.runway_angle_deg)
         is_heading_correct = abs(runway_heading_error_deg) < self.runway_angle_threshold_deg
 
 
@@ -669,7 +669,7 @@ class GuidanceEnv(gym.Env):
             track_medium_error = (abs(self.last_track_error) + abs(track_error)) / 2
             diff_track = abs(self.last_track_error - track_error)
 
-            diff_headings = abs(math.radians(utils.normalize_angle_deg(runway_heading_error_deg - self.last_runway_heading_error_deg[-1])) / math.pi)
+            diff_headings = abs(math.radians(utils.reduce_reflex_angle_deg(runway_heading_error_deg - self.last_runway_heading_error_deg[-1])) / math.pi)
             if abs(track_medium_error) < 0.15 and current_distance_km < self.last_distance_km[-1] and abs(runway_heading_error_deg) < 90:
                 if abs(runway_heading_error_deg) < abs(self.last_runway_heading_error_deg[-1]):
                     reward_heading = diff_headings
