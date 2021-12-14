@@ -3,6 +3,7 @@ import numpy as np
 EARTH_RADIUS_METERS = 6371e3
 EARTH_RADIUS_KM = EARTH_RADIUS_METERS / 1000
 
+
 def normalize_angle_deg(angle: float) -> float:
     """ Given an angle in degrees, normalises in [-179, 180] """
     # ATTRIBUTION: https://github.com/Gor-Ren/gym-jsbsim
@@ -74,3 +75,4 @@ def evaluate(env, agent, num_episodes=1000, reward_threshold= None) -> (float, f
         assert mean_reward > reward_threshold, "Mean reward below threshold: " f"{mean_reward:.2f} < {reward_threshold:.2f}"
 
     return rewards_history, episode_length_history, simulation_time_step_length_history, images, infos
+
