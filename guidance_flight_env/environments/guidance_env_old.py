@@ -5,7 +5,7 @@ from PIL import Image
 from gym.utils import seeding
 from guidance_flight_env.pid.pid_controller import PidController
 from guidance_flight_env.services.map_plotter_old import MapPlotter
-from guidance_flight_env.simulation import Simulation
+from guidance_flight_env.simulation_old import Simulation
 from guidance_flight_env.utils import utils_old as utils
 from typing import Tuple
 import guidance_flight_env.properties as prp
