@@ -11,13 +11,10 @@ https://colab.research.google.com/drive/15GDfrifRjYcXooyV7h5nKNgtpwwnvhmV
 
 ## Cite as: 
 ```
-@misc{
-  Laurito2021, 
-  author = {Laurito, Walter}, 
-  title = {guidance_flight_env}, 
-  year = {2021}, 
-  publisher = {GitHub}, 
-  journal = {GitHub repository}, 
-  howpublished = {\url{https://github.com/lauritowal/guidance-flight-env/}} 
+@book{laurito2023emergency,
+  title={Emergency Pilot: Automated Flight Guidance After a Loss of Thrust Based on Deep Reinforcement Learning},
+  author={Laurito, Walter and Titze, Ren{\`e} and Schiffmann, Wolfram},
+  year={2023},
+  publisher={Deutsche Gesellschaft f{\"u}r Luft-und Raumfahrt-Lilienthal-Oberth eV}
 }
 ```
